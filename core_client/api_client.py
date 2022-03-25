@@ -1,9 +1,9 @@
 """
     Radix Core API
 
-    This API provides endpoints for Radix network integrators.  # Overview  > WARNING > > The Core API is __NOT__ intended to be available on the public web. It is > mainly designed to be accessed in a private network for integration use.  Welcome to the Radix Core API version 0.9.0 for Integrators. Version 0.9.0 is intended for integrators who wish to begin the process of developing an integration between the Radix ledger and their own systems.  The Core API is separated into two: * The **Data API** is a read-only api which allows integrators to view and sync to the state of the ledger. * The **Construction API** allows integrators to construct and submit a transaction to the network on behalf of a key holder.  The Core API is primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards where detailed ledger data is required and the integrator can be expected to run their node to provide the Core API for their own consumption.  The Core API is not a full replacement for the current Node and Archive [APIs](https://docs.radixdlt.com). We are also working on a public-facing Gateway API that will be part of a full \"new API\", but is yet to be finalised.  We should stress that this API is in preview, and should __not__ be deployed into production until version 1.0.0 has been finalised in an official Radix node release.  ## Backwards Compatibility  The OpenAPI specification of all endpoints in Version 0.9.0 is intended to be backwards compatible with version 1.0.0 once released, so that there is little risk that clients working with this spec will break after the release of 1.0.0. Additional endpoints (such as retrieving mempool contents) are planned to be added.  ## Rosetta  The Data API and Construction API is inspired from [Rosetta API](https://www.rosetta-api.org/) most notably:   * Use of a JSON-Based RPC protocol on top of HTTP Post requests   * Use of Operations, Amounts, and Identifiers as universal language to   express asset movement for reading and writing  There are a few notable exceptions to note:   * Fetching of ledger data is through a Transaction stream rather than a   Block stream   * Use of `EntityIdentifier` rather than `AccountIdentifier`   * Use of `OperationGroup` rather than `related_operations` to express related   operations   * Construction endpoints perform coin selection on behalf of the caller.   This has the unfortunate effect of not being able to support high frequency   transactions from a single account. This will be addressed in future updates.   * Construction endpoints are online rather than offline as required by Rosetta  Future versions of the api will aim towards a fully-compliant Rosetta API.  ## Client Reference Implementation  > IMPORTANT > > The Network Gateway service is subject to substantial change before official release in v1.  We are currently working on a client reference implementation to the Core API, which we are happy to share with you for reference, as a demonstration of how to interpret responses from the Core API:  * [Latest - more functionality, no guarantees of correctness](https://github.com/radixdlt/radixdlt-network-gateway/) * [Stable - old code, ingesting balance and transfer data, manually tested against stokenet](https://github.com/radixdlt/radixdlt-network-gateway/tree/v0.1_BalanceSubstatesAndHistory)  As a starter, check out the folder `./src/DataAggregator/LedgerExtension` for understanding how to parse the contents of the transaction stream.  ## Client Code Generation  We have found success with generating clients against the [api.yaml specification](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) in the core folder. See https://openapi-generator.tech/ for more details.  The OpenAPI generator only supports openapi version 3.0.0 at present, but you can change 3.1.0 to 3.0.0 in the first line of the spec without affecting generation.  # Data API Flow  Integrators can make use of the Data API to synchronize a full or partial view of the ledger, transaction by transaction.  ![Data API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/data_sequence_flow.png)  # Construction API Flow  Integrators can make use of the Construction API to construct and submit transactions to the network.  ![Construction API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/construction_sequence_flow.png)  Unlike the Rosetta Construction API [specification](https://www.rosetta-api.org/docs/construction_api_introduction.html), this Construction API selects UTXOs on behalf of the caller. This has the unfortunate side effect of not being able to support high frequency transactions from a single account due to UTXO conflicts. This will be addressed in a future release.   # noqa: E501
+    This API provides endpoints from a node for integration with the Radix ledger.  # Overview  > WARNING > > The Core API is __NOT__ intended to be available on the public web. It is > designed to be accessed in a private network.  The Core API is separated into three: * The **Data API** is a read-only api which allows you to view and sync to the state of the ledger. * The **Construction API** allows you to construct and submit a transaction to the network. * The **Key API** allows you to use the keys managed by the node to sign transactions.  The Core API is a low level API primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards where detailed ledger data is required and the integrator can be expected to run their node to provide the Core API for their own consumption.  For a higher level API, see the [Gateway API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt-network-gateway/main/generation/gateway-api-spec.yaml).  For node monitoring, see the [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml).  ## Rosetta  The Data API and Construction API is inspired from [Rosetta API](https://www.rosetta-api.org/) most notably:   * Use of a JSON-Based RPC protocol on top of HTTP Post requests   * Use of Operations, Amounts, and Identifiers as universal language to   express asset movement for reading and writing  There are a few notable exceptions to note:   * Fetching of ledger data is through a Transaction stream rather than a   Block stream   * Use of `EntityIdentifier` rather than `AccountIdentifier`   * Use of `OperationGroup` rather than `related_operations` to express related   operations   * Construction endpoints perform coin selection on behalf of the caller.   This has the unfortunate effect of not being able to support high frequency   transactions from a single account. This will be addressed in future updates.   * Construction endpoints are online rather than offline as required by Rosetta  Future versions of the api will aim towards a fully-compliant Rosetta API.  ## Enabling Endpoints  All endpoints are enabled when running a node with the exception of two endpoints, each of which need to be manually configured to access: * `/transactions` endpoint must be enabled with configuration `api.transaction.enable=true`. This is because the transactions endpoint requires additional database storage which may not be needed for users who aren't using this endpoint * `/key/sign` endpoint must be enable with configuration `api.sign.enable=true`. This is a potentially dangerous endpoint if accessible publicly so it must be enabled manually.  ## Client Code Generation  We have found success with generating clients against the [api.yaml specification](https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml). See https://openapi-generator.tech/ for more details.  The OpenAPI generator only supports openapi version 3.0.0 at present, but you can change 3.1.0 to 3.0.0 in the first line of the spec without affecting generation.  # Data API Flow  The Data API can be used to synchronize a full or partial view of the ledger, transaction by transaction.  ![Data API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/update-documentation/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/data_sequence_flow.png)  # Construction API Flow  The Construction API can be used to construct and submit transactions to the network.  ![Construction API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/construction_sequence_flow.png)  Unlike the Rosetta Construction API [specification](https://www.rosetta-api.org/docs/construction_api_introduction.html), this Construction API selects UTXOs on behalf of the caller. This has the unfortunate side effect of not being able to support high frequency transactions from a single account due to UTXO conflicts. This will be addressed in a future release.   # noqa: E501
 
-    The version of the OpenAPI document: 0.9.0
+    The version of the OpenAPI document: 1.0.0
     Generated by: https://openapi-generator.tech
 """
 
@@ -131,7 +131,8 @@ class ApiClient(object):
         _preload_content: bool = True,
         _request_timeout: typing.Optional[typing.Union[int, float, typing.Tuple]] = None,
         _host: typing.Optional[str] = None,
-        _check_type: typing.Optional[bool] = None
+        _check_type: typing.Optional[bool] = None,
+        _content_type: typing.Optional[str] = None
     ):
 
         config = self.configuration
@@ -572,10 +573,12 @@ class ApiClient(object):
         else:
             return ', '.join(accepts)
 
-    def select_header_content_type(self, content_types):
+    def select_header_content_type(self, content_types, method=None, body=None):
         """Returns `Content-Type` based on an array of content_types provided.
 
         :param content_types: List of content-types.
+        :param method: http method (e.g. POST, PATCH).
+        :param body: http body to send.
         :return: Content-Type (e.g. application/json).
         """
         if not content_types:
@@ -583,17 +586,22 @@ class ApiClient(object):
 
         content_types = [x.lower() for x in content_types]
 
+        if (method == 'PATCH' and
+                'application/json-patch+json' in content_types and
+                isinstance(body, list)):
+            return 'application/json-patch+json'
+
         if 'application/json' in content_types or '*/*' in content_types:
             return 'application/json'
         else:
             return content_types[0]
 
-    def update_params_for_auth(self, headers, querys, auth_settings,
+    def update_params_for_auth(self, headers, queries, auth_settings,
                                resource_path, method, body):
         """Updates header and query params based on authentication setting.
 
         :param headers: Header parameters dict to be updated.
-        :param querys: Query parameters tuple list to be updated.
+        :param queries: Query parameters tuple list to be updated.
         :param auth_settings: Authentication setting identifiers list.
         :param resource_path: A string representation of the HTTP request resource path.
         :param method: A string representation of the HTTP request method.
@@ -612,7 +620,7 @@ class ApiClient(object):
                     if auth_setting['type'] != 'http-signature':
                         headers[auth_setting['key']] = auth_setting['value']
                 elif auth_setting['in'] == 'query':
-                    querys.append((auth_setting['key'], auth_setting['value']))
+                    queries.append((auth_setting['key'], auth_setting['value']))
                 else:
                     raise ApiValueError(
                         'Authentication token must be in `query` or `header`'
@@ -664,7 +672,9 @@ class Endpoint(object):
             '_request_timeout',
             '_return_http_data_only',
             '_check_input_type',
-            '_check_return_type'
+            '_check_return_type',
+            '_content_type',
+            '_spec_property_naming'
         ])
         self.params_map['nullable'].extend(['_request_timeout'])
         self.validations = root_map['validations']
@@ -677,7 +687,9 @@ class Endpoint(object):
             '_request_timeout': (none_type, float, (float,), [float], int, (int,), [int]),
             '_return_http_data_only': (bool,),
             '_check_input_type': (bool,),
-            '_check_return_type': (bool,)
+            '_check_return_type': (bool,),
+            '_spec_property_naming': (bool,),
+            '_content_type': (none_type, str)
         }
         self.openapi_types.update(extra_types)
         self.attribute_map = root_map['attribute_map']
@@ -713,7 +725,7 @@ class Endpoint(object):
                 value,
                 self.openapi_types[key],
                 [key],
-                False,
+                kwargs['_spec_property_naming'],
                 kwargs['_check_input_type'],
                 configuration=self.api_client.configuration
             )
@@ -741,11 +753,11 @@ class Endpoint(object):
                 base_name = self.attribute_map[param_name]
                 if (param_location == 'form' and
                         self.openapi_types[param_name] == (file_type,)):
-                    params['file'][param_name] = [param_value]
+                    params['file'][base_name] = [param_value]
                 elif (param_location == 'form' and
                         self.openapi_types[param_name] == ([file_type],)):
                     # param_value is already a list
-                    params['file'][param_name] = param_value
+                    params['file'][base_name] = param_value
                 elif param_location in {'form', 'query'}:
                     param_value_full = (base_name, param_value)
                     params[param_location].append(param_value_full)
@@ -824,11 +836,16 @@ class Endpoint(object):
             params['header']['Accept'] = self.api_client.select_header_accept(
                 accept_headers_list)
 
-        content_type_headers_list = self.headers_map['content_type']
-        if content_type_headers_list:
-            header_list = self.api_client.select_header_content_type(
-                content_type_headers_list)
-            params['header']['Content-Type'] = header_list
+        if kwargs.get('_content_type'):
+            params['header']['Content-Type'] = kwargs['_content_type']
+        else:
+            content_type_headers_list = self.headers_map['content_type']
+            if content_type_headers_list:
+                if params['body'] != "":
+                    header_list = self.api_client.select_header_content_type(
+                        content_type_headers_list, self.settings['http_method'],
+                        params['body'])
+                    params['header']['Content-Type'] = header_list
 
         return self.api_client.call_api(
             self.settings['endpoint_path'], self.settings['http_method'],

@@ -1,14 +1,15 @@
 """
     Radix Core API
 
-    This API provides endpoints for Radix network integrators.  # Overview  > WARNING > > The Core API is __NOT__ intended to be available on the public web. It is > mainly designed to be accessed in a private network for integration use.  Welcome to the Radix Core API version 0.9.0 for Integrators. Version 0.9.0 is intended for integrators who wish to begin the process of developing an integration between the Radix ledger and their own systems.  The Core API is separated into two: * The **Data API** is a read-only api which allows integrators to view and sync to the state of the ledger. * The **Construction API** allows integrators to construct and submit a transaction to the network on behalf of a key holder.  The Core API is primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards where detailed ledger data is required and the integrator can be expected to run their node to provide the Core API for their own consumption.  The Core API is not a full replacement for the current Node and Archive [APIs](https://docs.radixdlt.com). We are also working on a public-facing Gateway API that will be part of a full \"new API\", but is yet to be finalised.  We should stress that this API is in preview, and should __not__ be deployed into production until version 1.0.0 has been finalised in an official Radix node release.  ## Backwards Compatibility  The OpenAPI specification of all endpoints in Version 0.9.0 is intended to be backwards compatible with version 1.0.0 once released, so that there is little risk that clients working with this spec will break after the release of 1.0.0. Additional endpoints (such as retrieving mempool contents) are planned to be added.  ## Rosetta  The Data API and Construction API is inspired from [Rosetta API](https://www.rosetta-api.org/) most notably:   * Use of a JSON-Based RPC protocol on top of HTTP Post requests   * Use of Operations, Amounts, and Identifiers as universal language to   express asset movement for reading and writing  There are a few notable exceptions to note:   * Fetching of ledger data is through a Transaction stream rather than a   Block stream   * Use of `EntityIdentifier` rather than `AccountIdentifier`   * Use of `OperationGroup` rather than `related_operations` to express related   operations   * Construction endpoints perform coin selection on behalf of the caller.   This has the unfortunate effect of not being able to support high frequency   transactions from a single account. This will be addressed in future updates.   * Construction endpoints are online rather than offline as required by Rosetta  Future versions of the api will aim towards a fully-compliant Rosetta API.  ## Client Reference Implementation  > IMPORTANT > > The Network Gateway service is subject to substantial change before official release in v1.  We are currently working on a client reference implementation to the Core API, which we are happy to share with you for reference, as a demonstration of how to interpret responses from the Core API:  * [Latest - more functionality, no guarantees of correctness](https://github.com/radixdlt/radixdlt-network-gateway/) * [Stable - old code, ingesting balance and transfer data, manually tested against stokenet](https://github.com/radixdlt/radixdlt-network-gateway/tree/v0.1_BalanceSubstatesAndHistory)  As a starter, check out the folder `./src/DataAggregator/LedgerExtension` for understanding how to parse the contents of the transaction stream.  ## Client Code Generation  We have found success with generating clients against the [api.yaml specification](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) in the core folder. See https://openapi-generator.tech/ for more details.  The OpenAPI generator only supports openapi version 3.0.0 at present, but you can change 3.1.0 to 3.0.0 in the first line of the spec without affecting generation.  # Data API Flow  Integrators can make use of the Data API to synchronize a full or partial view of the ledger, transaction by transaction.  ![Data API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/data_sequence_flow.png)  # Construction API Flow  Integrators can make use of the Construction API to construct and submit transactions to the network.  ![Construction API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/construction_sequence_flow.png)  Unlike the Rosetta Construction API [specification](https://www.rosetta-api.org/docs/construction_api_introduction.html), this Construction API selects UTXOs on behalf of the caller. This has the unfortunate side effect of not being able to support high frequency transactions from a single account due to UTXO conflicts. This will be addressed in a future release.   # noqa: E501
+    This API provides endpoints from a node for integration with the Radix ledger.  # Overview  > WARNING > > The Core API is __NOT__ intended to be available on the public web. It is > designed to be accessed in a private network.  The Core API is separated into three: * The **Data API** is a read-only api which allows you to view and sync to the state of the ledger. * The **Construction API** allows you to construct and submit a transaction to the network. * The **Key API** allows you to use the keys managed by the node to sign transactions.  The Core API is a low level API primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards where detailed ledger data is required and the integrator can be expected to run their node to provide the Core API for their own consumption.  For a higher level API, see the [Gateway API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt-network-gateway/main/generation/gateway-api-spec.yaml).  For node monitoring, see the [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml).  ## Rosetta  The Data API and Construction API is inspired from [Rosetta API](https://www.rosetta-api.org/) most notably:   * Use of a JSON-Based RPC protocol on top of HTTP Post requests   * Use of Operations, Amounts, and Identifiers as universal language to   express asset movement for reading and writing  There are a few notable exceptions to note:   * Fetching of ledger data is through a Transaction stream rather than a   Block stream   * Use of `EntityIdentifier` rather than `AccountIdentifier`   * Use of `OperationGroup` rather than `related_operations` to express related   operations   * Construction endpoints perform coin selection on behalf of the caller.   This has the unfortunate effect of not being able to support high frequency   transactions from a single account. This will be addressed in future updates.   * Construction endpoints are online rather than offline as required by Rosetta  Future versions of the api will aim towards a fully-compliant Rosetta API.  ## Enabling Endpoints  All endpoints are enabled when running a node with the exception of two endpoints, each of which need to be manually configured to access: * `/transactions` endpoint must be enabled with configuration `api.transaction.enable=true`. This is because the transactions endpoint requires additional database storage which may not be needed for users who aren't using this endpoint * `/key/sign` endpoint must be enable with configuration `api.sign.enable=true`. This is a potentially dangerous endpoint if accessible publicly so it must be enabled manually.  ## Client Code Generation  We have found success with generating clients against the [api.yaml specification](https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml). See https://openapi-generator.tech/ for more details.  The OpenAPI generator only supports openapi version 3.0.0 at present, but you can change 3.1.0 to 3.0.0 in the first line of the spec without affecting generation.  # Data API Flow  The Data API can be used to synchronize a full or partial view of the ledger, transaction by transaction.  ![Data API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/update-documentation/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/data_sequence_flow.png)  # Construction API Flow  The Construction API can be used to construct and submit transactions to the network.  ![Construction API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/construction_sequence_flow.png)  Unlike the Rosetta Construction API [specification](https://www.rosetta-api.org/docs/construction_api_introduction.html), this Construction API selects UTXOs on behalf of the caller. This has the unfortunate side effect of not being able to support high frequency transactions from a single account due to UTXO conflicts. This will be addressed in a future release.   # noqa: E501
 
-    The version of the OpenAPI document: 0.9.0
+    The version of the OpenAPI document: 1.0.0
     Generated by: https://openapi-generator.tech
 """
 
 
 from datetime import date, datetime  # noqa: F401
+from copy import deepcopy
 import inspect
 import io
 import os
@@ -186,6 +187,26 @@ class OpenApiModel(object):
         """get the value of an attribute using dot notation: `instance.attr`"""
         return self.__getitem__(attr)
 
+    def __copy__(self):
+        cls = self.__class__
+        if self.get("_spec_property_naming", False):
+            return cls._new_from_openapi_data(**self.__dict__)
+        else:
+            return new_cls.__new__(cls, **self.__dict__)
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+
+        if self.get("_spec_property_naming", False):
+            new_inst = cls._new_from_openapi_data()
+        else:
+            new_inst = cls.__new__(cls)
+
+        for k, v in self.__dict__.items():
+            setattr(new_inst, k, deepcopy(v, memo))
+        return new_inst
+
+
     def __new__(cls, *args, **kwargs):
         # this function uses the discriminator to
         # pick a new schema/class to instantiate because a discriminator
@@ -295,8 +316,13 @@ class OpenApiModel(object):
             self_inst = super(OpenApiModel, cls).__new__(cls)
             self_inst.__init__(*args, **kwargs)
 
-        new_inst = new_cls.__new__(new_cls, *args, **kwargs)
-        new_inst.__init__(*args, **kwargs)
+        if kwargs.get("_spec_property_naming", False):
+            # when true, implies new is from deserialization
+            new_inst = new_cls._new_from_openapi_data(*args, **kwargs)
+        else:
+            new_inst = new_cls.__new__(new_cls, *args, **kwargs)
+            new_inst.__init__(*args, **kwargs)
+
         return new_inst
 
 
@@ -446,7 +472,7 @@ class ModelSimple(OpenApiModel):
         )
 
     def __contains__(self, name):
-        """used by `in` operator to check if an attrbute value was set in an instance: `'attr' in instance`"""
+        """used by `in` operator to check if an attribute value was set in an instance: `'attr' in instance`"""
         if name in self.required_properties:
             return name in self.__dict__
 
@@ -501,7 +527,7 @@ class ModelNormal(OpenApiModel):
         )
 
     def __contains__(self, name):
-        """used by `in` operator to check if an attrbute value was set in an instance: `'attr' in instance`"""
+        """used by `in` operator to check if an attribute value was set in an instance: `'attr' in instance`"""
         if name in self.required_properties:
             return name in self.__dict__
 
@@ -648,7 +674,7 @@ class ModelComposed(OpenApiModel):
         return value
 
     def __contains__(self, name):
-        """used by `in` operator to check if an attrbute value was set in an instance: `'attr' in instance`"""
+        """used by `in` operator to check if an attribute value was set in an instance: `'attr' in instance`"""
 
         if name in self.required_properties:
             return name in self.__dict__
@@ -1479,6 +1505,9 @@ def is_valid_type(input_class_simple, valid_classes):
     Returns:
         bool
     """
+    if issubclass(input_class_simple, OpenApiModel) and \
+        valid_classes == (bool, date, datetime, dict, float, int, list, str, none_type,):
+        return True
     valid_type = input_class_simple in valid_classes
     if not valid_type and (
             issubclass(input_class_simple, OpenApiModel) or
@@ -1628,6 +1657,7 @@ def model_to_dict(model_instance, serialize=True):
             attribute_map
     """
     result = {}
+    extract_item = lambda item: (item[0], model_to_dict(item[1], serialize=serialize)) if hasattr(item[1], '_data_store') else item
 
     model_instances = [model_instance]
     if model_instance._composed_schemas:
@@ -1657,14 +1687,17 @@ def model_to_dict(model_instance, serialize=True):
                            res.append(v)
                        elif isinstance(v, ModelSimple):
                            res.append(v.value)
+                       elif isinstance(v, dict):
+                           res.append(dict(map(
+                               extract_item,
+                               v.items()
+                           )))
                        else:
                            res.append(model_to_dict(v, serialize=serialize))
                    result[attr] = res
             elif isinstance(value, dict):
                 result[attr] = dict(map(
-                    lambda item: (item[0],
-                                  model_to_dict(item[1], serialize=serialize))
-                    if hasattr(item[1], '_data_store') else item,
+                    extract_item,
                     value.items()
                 ))
             elif isinstance(value, ModelSimple):
@@ -1747,7 +1780,10 @@ def get_allof_instances(self, model_args, constant_args):
     for allof_class in self._composed_schemas['allOf']:
 
         try:
-            allof_instance = allof_class(**model_args, **constant_args)
+            if constant_args.get('_spec_property_naming'):
+                allof_instance = allof_class._from_openapi_data(**model_args, **constant_args)
+            else:
+                allof_instance = allof_class(**model_args, **constant_args)
             composed_instances.append(allof_instance)
         except Exception as ex:
             raise ApiValueError(
@@ -1809,10 +1845,16 @@ def get_oneof_instance(cls, model_kwargs, constant_kwargs, model_arg=None):
 
         try:
             if not single_value_input:
-                oneof_instance = oneof_class(**model_kwargs, **constant_kwargs)
+                if constant_kwargs.get('_spec_property_naming'):
+                    oneof_instance = oneof_class._from_openapi_data(**model_kwargs, **constant_kwargs)
+                else:
+                    oneof_instance = oneof_class(**model_kwargs, **constant_kwargs)
             else:
                 if issubclass(oneof_class, ModelSimple):
-                    oneof_instance = oneof_class(model_arg, **constant_kwargs)
+                    if constant_kwargs.get('_spec_property_naming'):
+                        oneof_instance = oneof_class._from_openapi_data(model_arg, **constant_kwargs)
+                    else:
+                        oneof_instance = oneof_class(model_arg, **constant_kwargs)
                 elif oneof_class in PRIMITIVE_TYPES:
                     oneof_instance = validate_and_convert_types(
                         model_arg,
@@ -1867,7 +1909,10 @@ def get_anyof_instances(self, model_args, constant_args):
             continue
 
         try:
-            anyof_instance = anyof_class(**model_args, **constant_args)
+            if constant_args.get('_spec_property_naming'):
+                anyof_instance = anyof_class._from_openapi_data(**model_args, **constant_args)
+            else:
+                anyof_instance = anyof_class(**model_args, **constant_args)
             anyof_instances.append(anyof_instance)
         except Exception:
             pass

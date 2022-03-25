@@ -1,13 +1,16 @@
 from dataclasses import dataclass
+from tkinter import N
+from core_client.model.engine_configuration_request import EngineConfigurationRequest
+from core_client.model.key_sign_request import KeySignRequest
 import system_client as system_api
 from system_client.api import default_api
 import core_client as core_api
 from core_client.api import entity_api
 from core_client.api import construction_api
 from core_client.api import network_api
+from core_client.api import engine_api
 from core_client.api import key_api
 from core_client.model.data import Data
-from core_client.model.key_sign_request import KeySignRequest
 from core_client.model.key_list_request import KeyListRequest
 from core_client.model.entity_request import EntityRequest
 from core_client.model.sub_entity import SubEntity
@@ -17,18 +20,15 @@ from core_client.model.prepared_validator_registered import PreparedValidatorReg
 from core_client.model.validator_allow_delegation import ValidatorAllowDelegation
 from core_client.model.prepared_validator_fee import PreparedValidatorFee
 from core_client.model.validator_metadata import ValidatorMetadata
-from core_client.model.network_status_request import NetworkStatusRequest
 from core_client.model.construction_build_request import ConstructionBuildRequest
 from core_client.model.construction_submit_request import ConstructionSubmitRequest
 from core_client.model.resource_amount import ResourceAmount
 from core_client.model.stake_unit_resource_identifier import StakeUnitResourceIdentifier
 from core_client.model.token_resource_identifier import TokenResourceIdentifier
-from core_client.model.resource_identifier import ResourceIdentifier
 from core_client.model.operation import Operation
 from core_client.model.operation_group import OperationGroup
 from core_client.model.big_integer import BigInteger
 from core_client.model.entity_identifier import EntityIdentifier
-from core_client.model.network_identifier import NetworkIdentifier
 
 def get_health(api_client):
     api = default_api.DefaultApi(api_client)
@@ -53,6 +53,11 @@ def get_address_book(api_client):
 def get_configuration(api_client):
     api = default_api.DefaultApi(api_client)
     return api.system_configuration_get()
+
+def get_engine_configuration(api_client):
+    network_identifier = network_api.NetworkApi(api_client).network_configuration_post(dict()).network_identifier    
+    api = engine_api.EngineApi(api_client)
+    return api.engine_configuration_post(EngineConfigurationRequest(network_identifier))
 
 def get_account_info(api_client):
     api = network_api.NetworkApi(api_client)
@@ -285,8 +290,8 @@ def submit_action(api_client, actions):
     ))
     unsigned_transaction = build.unsigned_transaction
 
-    api = key.KeySignApi(api_client)
-    response = api.key_sign_post(SignRequest(
+    api = key_api.KeyApi(api_client)
+    response = api.key_sign_post(KeySignRequest(
         network_identifier = network_identifier,
         public_key = public_key,
         unsigned_transaction = unsigned_transaction
@@ -316,20 +321,21 @@ def get_node_identifiers(api_client):
 if __name__ == "__main__":
     system_config = system_api.Configuration("http://localhost:3333")
     with system_api.ApiClient(system_config) as api_client:
-        print(get_health(api_client))
-        # print(get_version(api_client))
-        # print(get_configuration(api_client))
+        print(get_health(api_client))        
+        print(get_version(api_client))
+        print(get_configuration(api_client))
 
     config = core_api.Configuration("http://localhost:3333")
     with core_api.ApiClient(config) as api_client:
+        print(get_engine_configuration(api_client))
         actions = [
-            set_validator_metadata('Validator', 'https://www.google.com'),
-            set_validator_registered(True)
+            #set_validator_metadata('Validator', 'https://www.google.com'),
+            #set_validator_registered(True)
             # set_validator_owner('ddx1qspll7tm6464am4yypzn59p42g6a8qhkguhc269p3vhs27s5vq5h24sfvvdfj')
             # set_validator_allow_delegation(True)
             # set_validator_fee(500) # 5%
             # transfer_tokens('xrd_dr1qyrs8qwl', '1000', 'ddx1qspll7tm6464am4yypzn59p42g6a8qhkguhc269p3vhs27s5vq5h24sfvvdfj')
             # stake_tokens('xrd_dr1qyrs8qwl', '90000000000000000000', 'dv1q0llj774w40wafpqg5apgd2jxhfc9aj897zk3gvt9uzh59rq9964vjryzf9')
-            # unstake_stake_units('100000000000000000', 'dv1q0llj774w40wafpqg5apgd2jxhfc9aj897zk3gvt9uzh59rq9964vjryzf9')
+            # unstake_stake_units('100000000000000000', 'dv1q0llj774w40wafpqg5apgd2jxhfc9aj897zk3gvt9uzh59rq9964vjryzf9')            
         ]
         print(submit_action(api_client, actions))

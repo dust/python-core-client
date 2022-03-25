@@ -73,7 +73,7 @@ class Configuration(object):
     :param server_operation_variables: Mapping from operation ID to a mapping with
       string values to replace variables in templated server configuration.
       The validation of enums is performed for variables with defined enum values before.
-    :param ssl_ca_cert: str - the path to a file of concatenated CA certificates 
+    :param ssl_ca_cert: str - the path to a file of concatenated CA certificates
       in PEM format
 
     """
@@ -89,7 +89,6 @@ class Configuration(object):
                  server_index=None, server_variables=None,
                  server_operation_index=None, server_operation_variables=None,
                  ssl_ca_cert=None,
-                 verify_ssl=True
                  ):
         """Constructor
         """
@@ -151,7 +150,7 @@ class Configuration(object):
         """Debug switch
         """
 
-        self.verify_ssl = verify_ssl
+        self.verify_ssl = True
         """SSL/TLS verification
            Set this to false to skip verifying SSL certificate when calling API
            from https server.
@@ -179,6 +178,9 @@ class Configuration(object):
 
         self.proxy = None
         """Proxy URL
+        """
+        self.no_proxy = None
+        """bypass proxy for host in the no_proxy list.
         """
         self.proxy_headers = None
         """Proxy headers

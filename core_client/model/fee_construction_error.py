@@ -1,9 +1,9 @@
 """
     Radix Core API
 
-    This API provides endpoints for Radix network integrators.  # Overview  > WARNING > > The Core API is __NOT__ intended to be available on the public web. It is > mainly designed to be accessed in a private network for integration use.  Welcome to the Radix Core API version 0.9.0 for Integrators. Version 0.9.0 is intended for integrators who wish to begin the process of developing an integration between the Radix ledger and their own systems.  The Core API is separated into two: * The **Data API** is a read-only api which allows integrators to view and sync to the state of the ledger. * The **Construction API** allows integrators to construct and submit a transaction to the network on behalf of a key holder.  The Core API is primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards where detailed ledger data is required and the integrator can be expected to run their node to provide the Core API for their own consumption.  The Core API is not a full replacement for the current Node and Archive [APIs](https://docs.radixdlt.com). We are also working on a public-facing Gateway API that will be part of a full \"new API\", but is yet to be finalised.  We should stress that this API is in preview, and should __not__ be deployed into production until version 1.0.0 has been finalised in an official Radix node release.  ## Backwards Compatibility  The OpenAPI specification of all endpoints in Version 0.9.0 is intended to be backwards compatible with version 1.0.0 once released, so that there is little risk that clients working with this spec will break after the release of 1.0.0. Additional endpoints (such as retrieving mempool contents) are planned to be added.  ## Rosetta  The Data API and Construction API is inspired from [Rosetta API](https://www.rosetta-api.org/) most notably:   * Use of a JSON-Based RPC protocol on top of HTTP Post requests   * Use of Operations, Amounts, and Identifiers as universal language to   express asset movement for reading and writing  There are a few notable exceptions to note:   * Fetching of ledger data is through a Transaction stream rather than a   Block stream   * Use of `EntityIdentifier` rather than `AccountIdentifier`   * Use of `OperationGroup` rather than `related_operations` to express related   operations   * Construction endpoints perform coin selection on behalf of the caller.   This has the unfortunate effect of not being able to support high frequency   transactions from a single account. This will be addressed in future updates.   * Construction endpoints are online rather than offline as required by Rosetta  Future versions of the api will aim towards a fully-compliant Rosetta API.  ## Client Reference Implementation  > IMPORTANT > > The Network Gateway service is subject to substantial change before official release in v1.  We are currently working on a client reference implementation to the Core API, which we are happy to share with you for reference, as a demonstration of how to interpret responses from the Core API:  * [Latest - more functionality, no guarantees of correctness](https://github.com/radixdlt/radixdlt-network-gateway/) * [Stable - old code, ingesting balance and transfer data, manually tested against stokenet](https://github.com/radixdlt/radixdlt-network-gateway/tree/v0.1_BalanceSubstatesAndHistory)  As a starter, check out the folder `./src/DataAggregator/LedgerExtension` for understanding how to parse the contents of the transaction stream.  ## Client Code Generation  We have found success with generating clients against the [api.yaml specification](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml) in the core folder. See https://openapi-generator.tech/ for more details.  The OpenAPI generator only supports openapi version 3.0.0 at present, but you can change 3.1.0 to 3.0.0 in the first line of the spec without affecting generation.  # Data API Flow  Integrators can make use of the Data API to synchronize a full or partial view of the ledger, transaction by transaction.  ![Data API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/data_sequence_flow.png)  # Construction API Flow  Integrators can make use of the Construction API to construct and submit transactions to the network.  ![Construction API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/construction_sequence_flow.png)  Unlike the Rosetta Construction API [specification](https://www.rosetta-api.org/docs/construction_api_introduction.html), this Construction API selects UTXOs on behalf of the caller. This has the unfortunate side effect of not being able to support high frequency transactions from a single account due to UTXO conflicts. This will be addressed in a future release.   # noqa: E501
+    This API provides endpoints from a node for integration with the Radix ledger.  # Overview  > WARNING > > The Core API is __NOT__ intended to be available on the public web. It is > designed to be accessed in a private network.  The Core API is separated into three: * The **Data API** is a read-only api which allows you to view and sync to the state of the ledger. * The **Construction API** allows you to construct and submit a transaction to the network. * The **Key API** allows you to use the keys managed by the node to sign transactions.  The Core API is a low level API primarily designed for network integrations such as exchanges, ledger analytics providers, or hosted ledger data dashboards where detailed ledger data is required and the integrator can be expected to run their node to provide the Core API for their own consumption.  For a higher level API, see the [Gateway API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt-network-gateway/main/generation/gateway-api-spec.yaml).  For node monitoring, see the [System API](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/system/api.yaml).  ## Rosetta  The Data API and Construction API is inspired from [Rosetta API](https://www.rosetta-api.org/) most notably:   * Use of a JSON-Based RPC protocol on top of HTTP Post requests   * Use of Operations, Amounts, and Identifiers as universal language to   express asset movement for reading and writing  There are a few notable exceptions to note:   * Fetching of ledger data is through a Transaction stream rather than a   Block stream   * Use of `EntityIdentifier` rather than `AccountIdentifier`   * Use of `OperationGroup` rather than `related_operations` to express related   operations   * Construction endpoints perform coin selection on behalf of the caller.   This has the unfortunate effect of not being able to support high frequency   transactions from a single account. This will be addressed in future updates.   * Construction endpoints are online rather than offline as required by Rosetta  Future versions of the api will aim towards a fully-compliant Rosetta API.  ## Enabling Endpoints  All endpoints are enabled when running a node with the exception of two endpoints, each of which need to be manually configured to access: * `/transactions` endpoint must be enabled with configuration `api.transaction.enable=true`. This is because the transactions endpoint requires additional database storage which may not be needed for users who aren't using this endpoint * `/key/sign` endpoint must be enable with configuration `api.sign.enable=true`. This is a potentially dangerous endpoint if accessible publicly so it must be enabled manually.  ## Client Code Generation  We have found success with generating clients against the [api.yaml specification](https://raw.githubusercontent.com/radixdlt/radixdlt/main/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/api.yaml). See https://openapi-generator.tech/ for more details.  The OpenAPI generator only supports openapi version 3.0.0 at present, but you can change 3.1.0 to 3.0.0 in the first line of the spec without affecting generation.  # Data API Flow  The Data API can be used to synchronize a full or partial view of the ledger, transaction by transaction.  ![Data API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/update-documentation/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/data_sequence_flow.png)  # Construction API Flow  The Construction API can be used to construct and submit transactions to the network.  ![Construction API Flow](https://raw.githubusercontent.com/radixdlt/radixdlt/feature/open-api/radixdlt-core/radixdlt/src/main/java/com/radixdlt/api/core/documentation/construction_sequence_flow.png)  Unlike the Rosetta Construction API [specification](https://www.rosetta-api.org/docs/construction_api_introduction.html), this Construction API selects UTXOs on behalf of the caller. This has the unfortunate side effect of not being able to support high frequency transactions from a single account due to UTXO conflicts. This will be addressed in a future release.   # noqa: E501
 
-    The version of the OpenAPI document: 0.9.0
+    The version of the OpenAPI document: 1.0.0
     Generated by: https://openapi-generator.tech
 """
 
@@ -24,13 +24,77 @@ from core_client.model_utils import (  # noqa: F401
     file_type,
     none_type,
     validate_get_composed_info,
+    OpenApiModel
 )
-from ..model_utils import OpenApiModel
 from core_client.exceptions import ApiAttributeError
 
 
+def lazy_import():
+    from core_client.model.above_maximum_validator_fee_increase_error import AboveMaximumValidatorFeeIncreaseError
+    from core_client.model.below_minimum_stake_error import BelowMinimumStakeError
+    from core_client.model.core_error import CoreError
+    from core_client.model.data_object_not_supported_by_entity_error import DataObjectNotSupportedByEntityError
+    from core_client.model.fee_construction_error import FeeConstructionError
+    from core_client.model.fee_construction_error_all_of import FeeConstructionErrorAllOf
+    from core_client.model.internal_server_error import InternalServerError
+    from core_client.model.invalid_address_error import InvalidAddressError
+    from core_client.model.invalid_data_object_error import InvalidDataObjectError
+    from core_client.model.invalid_fee_payer_entity_error import InvalidFeePayerEntityError
+    from core_client.model.invalid_hex_error import InvalidHexError
+    from core_client.model.invalid_json_error import InvalidJsonError
+    from core_client.model.invalid_partial_state_identifier_error import InvalidPartialStateIdentifierError
+    from core_client.model.invalid_public_key_error import InvalidPublicKeyError
+    from core_client.model.invalid_signature_error import InvalidSignatureError
+    from core_client.model.invalid_sub_entity_error import InvalidSubEntityError
+    from core_client.model.invalid_transaction_error import InvalidTransactionError
+    from core_client.model.invalid_transaction_hash_error import InvalidTransactionHashError
+    from core_client.model.mempool_full_error import MempoolFullError
+    from core_client.model.message_too_long_error import MessageTooLongError
+    from core_client.model.network_not_supported_error import NetworkNotSupportedError
+    from core_client.model.not_enough_native_tokens_for_fees_error import NotEnoughNativeTokensForFeesError
+    from core_client.model.not_enough_resources_error import NotEnoughResourcesError
+    from core_client.model.not_validator_entity_error import NotValidatorEntityError
+    from core_client.model.not_validator_owner_error import NotValidatorOwnerError
+    from core_client.model.public_key_not_supported_error import PublicKeyNotSupportedError
+    from core_client.model.resource_deposit_operation_not_supported_by_entity_error import ResourceDepositOperationNotSupportedByEntityError
+    from core_client.model.resource_withdraw_operation_not_supported_by_entity_error import ResourceWithdrawOperationNotSupportedByEntityError
+    from core_client.model.state_identifier_not_found_error import StateIdentifierNotFoundError
+    from core_client.model.substate_dependency_not_found_error import SubstateDependencyNotFoundError
+    from core_client.model.transaction_not_found_error import TransactionNotFoundError
+    globals()['AboveMaximumValidatorFeeIncreaseError'] = AboveMaximumValidatorFeeIncreaseError
+    globals()['BelowMinimumStakeError'] = BelowMinimumStakeError
+    globals()['CoreError'] = CoreError
+    globals()['DataObjectNotSupportedByEntityError'] = DataObjectNotSupportedByEntityError
+    globals()['FeeConstructionError'] = FeeConstructionError
+    globals()['FeeConstructionErrorAllOf'] = FeeConstructionErrorAllOf
+    globals()['InternalServerError'] = InternalServerError
+    globals()['InvalidAddressError'] = InvalidAddressError
+    globals()['InvalidDataObjectError'] = InvalidDataObjectError
+    globals()['InvalidFeePayerEntityError'] = InvalidFeePayerEntityError
+    globals()['InvalidHexError'] = InvalidHexError
+    globals()['InvalidJsonError'] = InvalidJsonError
+    globals()['InvalidPartialStateIdentifierError'] = InvalidPartialStateIdentifierError
+    globals()['InvalidPublicKeyError'] = InvalidPublicKeyError
+    globals()['InvalidSignatureError'] = InvalidSignatureError
+    globals()['InvalidSubEntityError'] = InvalidSubEntityError
+    globals()['InvalidTransactionError'] = InvalidTransactionError
+    globals()['InvalidTransactionHashError'] = InvalidTransactionHashError
+    globals()['MempoolFullError'] = MempoolFullError
+    globals()['MessageTooLongError'] = MessageTooLongError
+    globals()['NetworkNotSupportedError'] = NetworkNotSupportedError
+    globals()['NotEnoughNativeTokensForFeesError'] = NotEnoughNativeTokensForFeesError
+    globals()['NotEnoughResourcesError'] = NotEnoughResourcesError
+    globals()['NotValidatorEntityError'] = NotValidatorEntityError
+    globals()['NotValidatorOwnerError'] = NotValidatorOwnerError
+    globals()['PublicKeyNotSupportedError'] = PublicKeyNotSupportedError
+    globals()['ResourceDepositOperationNotSupportedByEntityError'] = ResourceDepositOperationNotSupportedByEntityError
+    globals()['ResourceWithdrawOperationNotSupportedByEntityError'] = ResourceWithdrawOperationNotSupportedByEntityError
+    globals()['StateIdentifierNotFoundError'] = StateIdentifierNotFoundError
+    globals()['SubstateDependencyNotFoundError'] = SubstateDependencyNotFoundError
+    globals()['TransactionNotFoundError'] = TransactionNotFoundError
 
-class FeeConstructionError(ModelNormal):
+
+class FeeConstructionError(ModelComposed):
     """NOTE: This class is auto generated by OpenAPI Generator.
     Ref: https://openapi-generator.tech
 
@@ -66,6 +130,7 @@ class FeeConstructionError(ModelNormal):
         This must be a method because a model may have properties that are
         of type self, this must run after the class is loaded
         """
+        lazy_import()
         return (bool, date, datetime, dict, float, int, list, str, none_type,)  # noqa: E501
 
     _nullable = False
@@ -80,33 +145,66 @@ class FeeConstructionError(ModelNormal):
             openapi_types (dict): The key is attribute name
                 and the value is attribute type.
         """
+        lazy_import()
         return {
             'attempts': (int,),  # noqa: E501
+            'type': (str,),  # noqa: E501
         }
 
     @cached_property
     def discriminator():
-        return None
-
+        lazy_import()
+        val = {
+            'AboveMaximumValidatorFeeIncreaseError': AboveMaximumValidatorFeeIncreaseError,
+            'BelowMinimumStakeError': BelowMinimumStakeError,
+            'DataObjectNotSupportedByEntityError': DataObjectNotSupportedByEntityError,
+            'FeeConstructionError': FeeConstructionError,
+            'InternalServerError': InternalServerError,
+            'InvalidAddressError': InvalidAddressError,
+            'InvalidDataObjectError': InvalidDataObjectError,
+            'InvalidFeePayerEntityError': InvalidFeePayerEntityError,
+            'InvalidHexError': InvalidHexError,
+            'InvalidJsonError': InvalidJsonError,
+            'InvalidPartialStateIdentifierError': InvalidPartialStateIdentifierError,
+            'InvalidPublicKeyError': InvalidPublicKeyError,
+            'InvalidSignatureError': InvalidSignatureError,
+            'InvalidSubEntityError': InvalidSubEntityError,
+            'InvalidTransactionError': InvalidTransactionError,
+            'InvalidTransactionHashError': InvalidTransactionHashError,
+            'MempoolFullError': MempoolFullError,
+            'MessageTooLongError': MessageTooLongError,
+            'NetworkNotSupportedError': NetworkNotSupportedError,
+            'NotEnoughNativeTokensForFeesError': NotEnoughNativeTokensForFeesError,
+            'NotEnoughResourcesError': NotEnoughResourcesError,
+            'NotValidatorEntityError': NotValidatorEntityError,
+            'NotValidatorOwnerError': NotValidatorOwnerError,
+            'PublicKeyNotSupportedError': PublicKeyNotSupportedError,
+            'ResourceDepositOperationNotSupportedByEntityError': ResourceDepositOperationNotSupportedByEntityError,
+            'ResourceWithdrawOperationNotSupportedByEntityError': ResourceWithdrawOperationNotSupportedByEntityError,
+            'StateIdentifierNotFoundError': StateIdentifierNotFoundError,
+            'SubstateDependencyNotFoundError': SubstateDependencyNotFoundError,
+            'TransactionNotFoundError': TransactionNotFoundError,
+        }
+        if not val:
+            return None
+        return {'type': val}
 
     attribute_map = {
         'attempts': 'attempts',  # noqa: E501
+        'type': 'type',  # noqa: E501
     }
 
     read_only_vars = {
     }
 
-    _composed_schemas = {}
-
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, attempts, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, *args, **kwargs):  # noqa: E501
         """FeeConstructionError - a model defined in OpenAPI
 
-        Args:
-            attempts (int):
-
         Keyword Args:
+            attempts (int):
+            type (str):
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -164,15 +262,29 @@ class FeeConstructionError(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.attempts = attempts
+        constant_args = {
+            '_check_type': _check_type,
+            '_path_to_item': _path_to_item,
+            '_spec_property_naming': _spec_property_naming,
+            '_configuration': _configuration,
+            '_visited_composed_classes': self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(
+            constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
+            if var_name in discarded_args and \
                         self._configuration is not None and \
                         self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+                        self._additional_properties_model_instances:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
+
         return self
 
     required_properties = set([
@@ -182,16 +294,18 @@ class FeeConstructionError(ModelNormal):
         '_path_to_item',
         '_configuration',
         '_visited_composed_classes',
+        '_composed_instances',
+        '_var_name_to_model_instances',
+        '_additional_properties_model_instances',
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, attempts, *args, **kwargs):  # noqa: E501
+    def __init__(self, *args, **kwargs):  # noqa: E501
         """FeeConstructionError - a model defined in OpenAPI
 
-        Args:
-            attempts (int):
-
         Keyword Args:
+            attempts (int):
+            type (str):
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -247,15 +361,49 @@ class FeeConstructionError(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
-        self.attempts = attempts
+        constant_args = {
+            '_check_type': _check_type,
+            '_path_to_item': _path_to_item,
+            '_spec_property_naming': _spec_property_naming,
+            '_configuration': _configuration,
+            '_visited_composed_classes': self._visited_composed_classes,
+        }
+        composed_info = validate_get_composed_info(
+            constant_args, kwargs, self)
+        self._composed_instances = composed_info[0]
+        self._var_name_to_model_instances = composed_info[1]
+        self._additional_properties_model_instances = composed_info[2]
+        discarded_args = composed_info[3]
+
         for var_name, var_value in kwargs.items():
-            if var_name not in self.attribute_map and \
+            if var_name in discarded_args and \
                         self._configuration is not None and \
                         self._configuration.discard_unknown_keys and \
-                        self.additional_properties_type is None:
+                        self._additional_properties_model_instances:
                 # discard variable.
                 continue
             setattr(self, var_name, var_value)
             if var_name in self.read_only_vars:
                 raise ApiAttributeError(f"`{var_name}` is a read-only attribute. Use `from_openapi_data` to instantiate "
                                      f"class with read only attributes.")
+
+    @cached_property
+    def _composed_schemas():
+        # we need this here to make our import statements work
+        # we must store _composed_schemas in here so the code is only run
+        # when we invoke this method. If we kept this at the class
+        # level we would get an error because the class level
+        # code would be run when this module is imported, and these composed
+        # classes don't exist yet because their module has not finished
+        # loading
+        lazy_import()
+        return {
+          'anyOf': [
+          ],
+          'allOf': [
+              CoreError,
+              FeeConstructionErrorAllOf,
+          ],
+          'oneOf': [
+          ],
+        }
